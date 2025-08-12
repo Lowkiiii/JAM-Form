@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Project Folder Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .form-container {
+            padding: 30px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="email"], 
+        input[type="date"], 
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            background: white;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        /* Custom select styling */
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus, 
+        input[type="email"]:focus, 
+        input[type="date"]:focus, 
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #ff8c00;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+        }
+
+        .submit-btn, .add-invoice-btn, .add-more-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .add-invoice-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            margin-bottom: 20px;
+        }
+
+        .add-more-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover, .add-invoice-btn:hover, .add-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .add-more-btn:hover {
+            background: #218838;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .submit-btn:active, .add-invoice-btn:active, .add-more-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled, .add-invoice-btn:disabled, .add-more-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff8c00;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result-details {
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .reset-btn:hover {
+            background: #5a6268;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #0d47a1;
+        }
+
+        .info-box strong {
+            color: #1565c0;
+        }
+
+        .file-upload-area {
+            position: relative;
+            border: 2px dashed #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #fafbfc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #ff8c00;
+            background: #fff8f0;
+        }
+
+        .file-upload-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+        }
+
+        .file-upload-text span:nth-child(2) {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .file-upload-text small {
+            color: #666;
+            font-size: 12px;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-list {
+            margin-top: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-item span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .file-remove:hover {
+            background: #c82333;
+        }
+
+        .info-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            color: #0c5460;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .info-icon {
+            font-size: 16px;
+        }
+
+        .date-range {
+            display: flex;
+            align-items: end;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .date-input-group {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .date-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .date-separator {
+            color: #666;
+            font-weight: 500;
+            padding: 0 5px;
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ff6347;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ffe4e1;
+        }
+
+        /* Hidden state */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Invoice Section Styles */
+        .invoice-section {
+            border: 2px solid #e8f4fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8fcff;
+            position: relative;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .invoice-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0066cc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-invoice-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .remove-invoice-btn:hover {
+            background: #c82333;
+        }
+
+        .invoice-subsection {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .subsection-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .currency-highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        @media (max-width: 600px) {
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .date-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-separator {
+                text-align: center;
+                margin: 5px 0;
+            }
+
+            .invoice-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Safety Project Creator</h1>
+            <p>Create organized project folders with automatic ID generation</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-box">
+                <strong>Naming Format:</strong> S25XXX. Client Name Project Name Location Month Year Manager Initials<br>
+                <strong>Example:</strong> S25440. Proactiv Harry Potter Exhibition AD July 25 PC
+            </div>
+
+            <form id="safetyProjectForm">
+                <!-- User Information Section -->
+                <div class="section-title">👤 User Information</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userName">Name *</label>
+                        <input type="text" id="userName" name="userName" required 
+                               placeholder="e.g., John Smith">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userTitle">Title *</label>
+                        <input type="text" id="userTitle" name="userTitle" required 
+                               placeholder="e.g., Safety Manager">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="companyName">Company Name *</label>
+                        <input type="text" id="companyName" name="companyName" required 
+                               placeholder="e.g., ABC Safety Solutions">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userEmail">Email *</label>
+                        <input type="email" id="userEmail" name="userEmail" required 
+                               placeholder="e.g., john.smith@company.com">
+                    </div>
+                </div>
+
+                <!-- Service Information Section -->
+                <div class="section-title">🛠️ Service Information</div>
+
+                <div class="form-group">
+                    <label for="serviceType">Which of Our Services Does This Most Align with? *</label>
+                    <select id="serviceType" name="serviceType" required>
+                        <option value="">Select Service</option>
+                        <option value="Training (JAM Training)">Training (JAM Training)</option>
+                        <option value="Project Management and Events Staffing (JAM Safety)">Project Management and Events Staffing (JAM Safety)</option>
+                        <option value="Recruitment (JAM People)">Recruitment (JAM People)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="workedWithJAM">Have you worked with JAM before? *</label>
+                        <select id="workedWithJAM" name="workedWithJAM" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fillingOutFor">Are you Filling This Out On Behalf Of? *</label>
+                        <select id="fillingOutFor" name="fillingOutFor" required>
+                            <option value="">Select Option</option>
+                            <option value="Company">Company</option>
+                            <option value="JAM">JAM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- JAM Account Manager Field (Conditionally Visible) -->
+                <div class="form-group hidden" id="jamAccountManagerGroup">
+                    <label for="jamAccountManager">JAM Account Manager *</label>
+                    <input type="text" id="jamAccountManager" name="jamAccountManager" 
+                           placeholder="e.g., John Smith">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmedDates">Do You Have Confirmed Dates? *</label>
+                    <select id="confirmedDates" name="confirmedDates" required>
+                        <option value="">Select Option</option>
+                        <option value="Yes">Yes - I have confirmed dates</option>
+                        <option value="No">No - I have expected dates</option>
+                    </select>
+                </div>
+
+                <!-- Project Dates Section (Conditionally Visible) -->
+                <div id="dateRangesSection" class="hidden">
+                    <div class="section-title">📅 Project Dates</div>
+                    
+                    <div class="info-message">
+                        <span class="info-icon">💡</span>
+                        <span>Please fill out at least one date range. If you don't have all dates yet, fill out what you know. For single-day events, use the same date for start and end.</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buildStartDate">Build Phase</label>
+                        <div class="date-range">
+                            <div class="date-input-group">
+                                <label class="date-label">Start Date</label>
+                                <input type="date" id="buildStartDate" name="buildStartDate">
+                            </div>
+                            <div class="date-separator">to</div>
+                            <div class="date-input-group">
+                                <label class="date-label">End Date</label>
+                                <input type="date" id="buildEndDate" name="buildEndDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="liveStartDate">Live Phase</label>
+                        <div class="date-range">
+                            <div class="date-input-group">
+                                <label class="date-label">Start Date</label>
+                                <input type="date" id="liveStartDate" name="liveStartDate">
+                            </div>
+                            <div class="date-separator">to</div>
+                            <div class="date-input-group">
+                                <label class="date-label">End Date</label>
+                                <input type="date" id="liveEndDate" name="liveEndDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deRigStartDate">De-Rig Phase</label>
+                        <div class="date-range">
+                            <div class="date-input-group">
+                                <label class="date-label">Start Date</label>
+                                <input type="date" id="deRigStartDate" name="deRigStartDate">
+                            </div>
+                            <div class="date-separator">to</div>
+                            <div class="date-input-group">
+                                <label class="date-label">End Date</label>
+                                <input type="date" id="deRigEndDate" name="deRigEndDate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="form-group">
+                    <label for="projectDocuments">Upload Project Documents (Optional)</label>
+                    <div class="info-message">
+                        <span class="info-icon">💡</span>
+                        <span>Upload any documents relevant to the project. This is optional.</span>
+                    </div>
+                    <div class="file-upload-area">
+                        <input type="file" id="projectDocuments" name="projectDocuments" 
+                               multiple accept=".pdf,.doc,.docx,.xlsx,.xls,.ppt,.pptx,.jpg,.jpeg,.png,.zip">
+                        <div class="file-upload-text">
+                            <span class="upload-icon">📁</span>
+                            <span>Click to browse or drag files here</span>
+                            <small>Supported formats: PDF, Word, Excel, PowerPoint, Images, ZIP</small>
+                        </div>
+                    </div>
+                    <div id="fileList" class="file-list"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="requiresOnsitePerson">Does This Project Require an on-site person on this project? *</label>
+                    <select id="requiresOnsitePerson" name="requiresOnsitePerson" required>
+                        <option value="">Select Option</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+
+                <!-- Project Information Section -->
+                <div class="section-title">📁 Project Information</div>
+
+                <div class="form-group">
+                    <label for="clientName">Client Name *</label>
+                    <input type="text" id="clientName" name="clientName" required 
+                           placeholder="e.g., Proactiv">
+                </div>
+
+                <div class="form-group">
+                    <label for="projectName">Project Name *</label>
+                    <input type="text" id="projectName" name="projectName" required 
+                           placeholder="e.g., Harry Potter Exhibition">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <input type="text" id="location" name="location" required 
+                               placeholder="e.g., AD (Abu Dhabi)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectMonth">Project Start Month *</label>
+                        <select id="projectMonth" name="projectMonth" required>
+                            <option value="">Select Month</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="accountManager">Account Manager Initials *</label>
+                    <input type="text" id="accountManager" name="accountManager" required 
+                           placeholder="e.g., PC" maxlength="5">
+                </div>
+
+                <!-- Add Invoice Button (Initially Visible) -->
+                <button type="button" class="add-invoice-btn" id="addInvoiceBtn">
+                    💰 Add Invoice
+                </button>
+
+                <!-- Invoice Section (Initially Hidden) -->
+                <div id="invoiceMainSection" class="hidden">
+                    <div class="section-title">💰 Invoice</div>
+                    
+                    <div class="info-message">
+                        <span class="info-icon">💼</span>
+                        <span>Add invoice details that will be automatically populated in the Excel template. Click "Add More" to add additional invoice items.</span>
+                    </div>
+
+                    <!-- Currency Selection (Global for all invoices) -->
+                    <div class="currency-highlight">
+                        <div class="form-group">
+                            <label for="projectCurrency">💰 Currency *</label>
+                            <select id="projectCurrency" name="projectCurrency" required>
+                                <option value="">Select Currency</option>
+                                <option value="PHP">PHP - Philippine Peso</option>
+                                <option value="AED" selected>AED - United Arab Emirates Dirham</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="SAR">SAR - Saudi Riyal</option>
+                                <option value="SGD">SGD - Singapore Dollar</option>
+                                <option value="USD">USD - United States Dollar</option>
+                            </select>
+                            <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                                💡 This currency will apply to all invoice items in this project
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="invoiceContainer">
+                        <!-- First invoice item (always present when invoice section is shown) -->
+                        <div class="invoice-section" data-invoice-index="0">
+                            <div class="invoice-header">
+                                <div class="invoice-title">
+                                    📋 Invoice Item #1
+                                </div>
+                            </div>
+
+                            <!-- Details Section -->
+                            <div class="invoice-subsection">
+                                <div class="subsection-title">📝 Details</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="roleService_0">Role/Service</label>
+                                        <input type="text" id="roleService_0" name="roleService_0" 
+                                               placeholder="e.g., Safety Officer">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="department_0">Department</label>
+                                        <input type="text" id="department_0" name="department_0" 
+                                               placeholder="e.g., Safety">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="personnelSupplier_0">Name of Personnel/Supplier</label>
+                                    <input type="text" id="personnelSupplier_0" name="personnelSupplier_0" 
+                                           placeholder="e.g., John Smith or ABC Company">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="detailsStartDate_0">Start Date</label>
+                                        <input type="date" id="detailsStartDate_0" name="detailsStartDate_0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="detailsEndDate_0">End Date</label>
+                                        <input type="date" id="detailsEndDate_0" name="detailsEndDate_0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- JAM Cost Section -->
+                            <div class="invoice-subsection">
+                                <div class="subsection-title">💰 JAM Cost</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="fixedIncomingDayRate_0">Fixed Incoming Day Rate</label>
+                                        <input type="number" id="fixedIncomingDayRate_0" name="fixedIncomingDayRate_0" 
+                                               placeholder="e.g., 250" step="0.01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="noPaxTerms_0">No. of Pax/Terms</label>
+                                        <input type="text" id="noPaxTerms_0" name="noPaxTerms_0" 
+                                               placeholder="e.g., 2 people or Monthly">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- JAM Income Section -->
+                            <div class="invoice-subsection">
+                                <div class="subsection-title">📈 JAM Income</div>
+                                <div class="form-group">
+                                    <label for="fixedOutgoingDayRate_0">Fixed Outgoing Day Rate</label>
+                                    <input type="number" id="fixedOutgoingDayRate_0" name="fixedOutgoingDayRate_0" 
+                                           placeholder="e.g., 300" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="add-more-btn hidden" id="addMoreBtn">
+                        ➕ Add More Item
+                    </button>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚀 Create Safety Project Folder
+                </button>
+            </form>
+
+            <div class="loading" id="loadingDiv">
+                <div class="spinner"></div>
+                <p>Creating project folder and populating Excel template...</p>
+            </div>
+
+            <div class="result" id="resultDiv">
+                <h3 id="resultTitle"></h3>
+                <p id="resultMessage"></p>
+                <div class="result-details" id="resultDetails"></div>
+                <button class="reset-btn" onclick="resetForm()">Create Another Project</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SharePoint-compatible JavaScript - using simple DOM manipulation and event handlers
+        var selectedFiles = [];
+        var invoiceCounter = 1;
+
+        // Initialize form when page loads - SharePoint compatible
+        function initializeForm() {
+            try {
+                console.log('SharePoint-compatible form initializing...');
+                
+                setupEventHandlers();
+                setupDateAutoFill();
+                setCurrentMonth();
+                
+                console.log('Form initialized successfully');
+            } catch (error) {
+                console.error('Form initialization error:', error);
+            }
+        }
+
+        // Setup all event handlers
+        function setupEventHandlers() {
+            var accountManager = document.getElementById('accountManager');
+            var fileInput = document.getElementById('projectDocuments');
+            var form = document.getElementById('safetyProjectForm');
+            var fillingOutFor = document.getElementById('fillingOutFor');
+            var confirmedDates = document.getElementById('confirmedDates');
+            var addInvoiceBtn = document.getElementById('addInvoiceBtn');
+            var addMoreBtn = document.getElementById('addMoreBtn');
+
+            // Account manager auto-uppercase
+            if (accountManager) {
+                accountManager.addEventListener('input', function() {
+                    this.value = this.value.toUpperCase();
+                });
+            }
+
+            // File input handler
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    try {
+                        selectedFiles = Array.from(e.target.files);
+                        updateFileList();
+                    } catch (error) {
+                        console.error('File handling error:', error);
+                    }
+                });
+            }
+
+            // Form submission
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitForm();
+                });
+            }
+
+            // Conditional field visibility
+            if (fillingOutFor) {
+                fillingOutFor.addEventListener('change', toggleAccountManager);
+            }
+
+            if (confirmedDates) {
+                confirmedDates.addEventListener('change', toggleDateRanges);
+            }
+
+            // Invoice buttons
+            if (addInvoiceBtn) {
+                addInvoiceBtn.addEventListener('click', showInvoiceSection);
+            }
+
+            if (addMoreBtn) {
+                addMoreBtn.addEventListener('click', addInvoiceItem);
+            }
+        }
+
+        // Toggle JAM Account Manager visibility
+        function toggleAccountManager() {
+            var fillingOutFor = document.getElementById('fillingOutFor');
+            var jamAccountManagerGroup = document.getElementById('jamAccountManagerGroup');
+            var jamAccountManager = document.getElementById('jamAccountManager');
+            
+            if (fillingOutFor && jamAccountManagerGroup && jamAccountManager) {
+                if (fillingOutFor.value === 'JAM') {
+                    jamAccountManagerGroup.classList.remove('hidden');
+                    jamAccountManager.required = true;
+                } else {
+                    jamAccountManagerGroup.classList.add('hidden');
+                    jamAccountManager.required = false;
+                    jamAccountManager.value = '';
+                }
+            }
+        }
+
+        // Toggle Date Ranges visibility
+        function toggleDateRanges() {
+            var confirmedDates = document.getElementById('confirmedDates');
+            var dateRangesSection = document.getElementById('dateRangesSection');
+            
+            if (confirmedDates && dateRangesSection) {
+                if (confirmedDates.value === 'Yes' || confirmedDates.value === 'No') {
+                    dateRangesSection.classList.remove('hidden');
+                } else {
+                    dateRangesSection.classList.add('hidden');
+                    clearDateFields();
+                }
+            }
+        }
+
+        // Clear all date fields
+        function clearDateFields() {
+            var dateFields = ['buildStartDate', 'buildEndDate', 'liveStartDate', 'liveEndDate', 'deRigStartDate', 'deRigEndDate'];
+            dateFields.forEach(function(fieldId) {
+                var field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = '';
+                }
+            });
+        }
+
+        // Setup date auto-fill
+        function setupDateAutoFill() {
+            var datePairs = [
+                ['buildStartDate', 'buildEndDate'],
+                ['liveStartDate', 'liveEndDate'],
+                ['deRigStartDate', 'deRigEndDate']
+            ];
+
+            datePairs.forEach(function(pair) {
+                var startField = document.getElementById(pair[0]);
+                var endField = document.getElementById(pair[1]);
+                
+                if (startField && endField) {
+                    startField.addEventListener('change', function() {
+                        if (startField.value && !endField.value) {
+                            endField.value = startField.value;
+                        }
+                    });
+                }
+            });
+        }
+
+        // Show Invoice Section
+        function showInvoiceSection() {
+            var addInvoiceBtn = document.getElementById('addInvoiceBtn');
+            var invoiceMainSection = document.getElementById('invoiceMainSection');
+            var addMoreBtn = document.getElementById('addMoreBtn');
+            
+            if (addInvoiceBtn && invoiceMainSection && addMoreBtn) {
+                addInvoiceBtn.classList.add('hidden');
+                invoiceMainSection.classList.remove('hidden');
+                addMoreBtn.classList.remove('hidden');
+            }
+        }
+
+        // Add More Invoice Item
+        function addInvoiceItem() {
+            try {
+                var invoiceContainer = document.getElementById('invoiceContainer');
+                if (!invoiceContainer) return;
+
+                var newInvoiceDiv = document.createElement('div');
+                newInvoiceDiv.className = 'invoice-section';
+                newInvoiceDiv.setAttribute('data-invoice-index', invoiceCounter);
+                
+                newInvoiceDiv.innerHTML = createInvoiceHTML(invoiceCounter);
+                invoiceContainer.appendChild(newInvoiceDiv);
+                
+                // Add remove button event listener
+                var removeBtn = newInvoiceDiv.querySelector('.remove-invoice-btn');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function() {
+                        removeInvoiceItem(this);
+                    });
+                }
+                
+                invoiceCounter++;
+            } catch (error) {
+                console.error('Error adding invoice item:', error);
+            }
+        }
+
+        // Create invoice HTML
+        function createInvoiceHTML(index) {
+            return '<div class="invoice-header">' +
+                '<div class="invoice-title">📋 Invoice Item #' + (index + 1) + '</div>' +
+                '<button type="button" class="remove-invoice-btn">❌ Remove</button>' +
+            '</div>' +
+            '<div class="invoice-subsection">' +
+                '<div class="subsection-title">📝 Details</div>' +
+                '<div class="form-row">' +
+                    '<div class="form-group">' +
+                        '<label for="roleService_' + index + '">Role/Service</label>' +
+                        '<input type="text" id="roleService_' + index + '" name="roleService_' + index + '" placeholder="e.g., Safety Officer">' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="department_' + index + '">Department</label>' +
+                        '<input type="text" id="department_' + index + '" name="department_' + index + '" placeholder="e.g., Safety">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label for="personnelSupplier_' + index + '">Name of Personnel/Supplier</label>' +
+                    '<input type="text" id="personnelSupplier_' + index + '" name="personnelSupplier_' + index + '" placeholder="e.g., John Smith or ABC Company">' +
+                '</div>' +
+                '<div class="form-row">' +
+                    '<div class="form-group">' +
+                        '<label for="detailsStartDate_' + index + '">Start Date</label>' +
+                        '<input type="date" id="detailsStartDate_' + index + '" name="detailsStartDate_' + index + '">' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="detailsEndDate_' + index + '">End Date</label>' +
+                        '<input type="date" id="detailsEndDate_' + index + '" name="detailsEndDate_' + index + '">' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="invoice-subsection">' +
+                '<div class="subsection-title">💰 JAM Cost</div>' +
+                '<div class="form-row">' +
+                    '<div class="form-group">' +
+                        '<label for="fixedIncomingDayRate_' + index + '">Fixed Incoming Day Rate</label>' +
+                        '<input type="number" id="fixedIncomingDayRate_' + index + '" name="fixedIncomingDayRate_' + index + '" placeholder="e.g., 250" step="0.01">' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="noPaxTerms_' + index + '">No. of Pax/Terms</label>' +
+                        '<input type="text" id="noPaxTerms_' + index + '" name="noPaxTerms_' + index + '" placeholder="e.g., 2 people or Monthly">' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="invoice-subsection">' +
+                '<div class="subsection-title">📈 JAM Income</div>' +
+                '<div class="form-group">' +
+                    '<label for="fixedOutgoingDayRate_' + index + '">Fixed Outgoing Day Rate</label>' +
+                    '<input type="number" id="fixedOutgoingDayRate_' + index + '" name="fixedOutgoingDayRate_' + index + '" placeholder="e.g., 300" step="0.01">' +
+                '</div>' +
+            '</div>';
+        }
+
+        // Remove Invoice Item
+        function removeInvoiceItem(button) {
+            try {
+                var invoiceSection = button.closest('.invoice-section');
+                if (invoiceSection && invoiceSection.parentNode) {
+                    invoiceSection.parentNode.removeChild(invoiceSection);
+                    updateInvoiceNumbers();
+                }
+            } catch (error) {
+                console.error('Error removing invoice item:', error);
+            }
+        }
+
+        // Update Invoice Numbers
+        function updateInvoiceNumbers() {
+            var invoiceSections = document.querySelectorAll('.invoice-section');
+            invoiceSections.forEach(function(section, index) {
+                var title = section.querySelector('.invoice-title');
+                if (title) {
+                    title.textContent = '📋 Invoice Item #' + (index + 1);
+                }
+            });
+        }
+
+        // Update file list display
+        function updateFileList() {
+            var fileList = document.getElementById('fileList');
+            if (fileList) {
+                fileList.innerHTML = '';
+                if (selectedFiles.length > 0) {
+                    selectedFiles.forEach(function(file, index) {
+                        var fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = '<span>' + file.name + ' (' + formatFileSize(file.size) + ')</span>' +
+                                           '<button type="button" class="file-remove" onclick="removeFile(' + index + ')">Remove</button>';
+                        fileList.appendChild(fileItem);
+                    });
+                }
+            }
+        }
+
+        // Remove file
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            
+            // Update file input
+            var fileInput = document.getElementById('projectDocuments');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Set current month as default
+        function setCurrentMonth() {
+            var projectMonth = document.getElementById('projectMonth');
+            if (projectMonth) {
+                var now = new Date();
+                var months = ['January', 'February', 'March', 'April', 'May', 'June',
+                            'July', 'August', 'September', 'October', 'November', 'December'];
+                var currentMonth = months[now.getMonth()];
+                projectMonth.value = currentMonth;
+            }
+        }
+
+        // Submit form
+        function submitForm() {
+            try {
+                var form = document.getElementById('safetyProjectForm');
+                var loadingDiv = document.getElementById('loadingDiv');
+                var resultDiv = document.getElementById('resultDiv');
+
+                // Hide form, show loading
+                if (form) form.style.display = 'none';
+                if (loadingDiv) loadingDiv.style.display = 'block';
+                if (resultDiv) resultDiv.style.display = 'none';
+
+                // Collect form data
+                var formData = collectFormData();
+                
+                // Send to webhook
+                sendToWebhook(formData);
+                
+            } catch (error) {
+                console.error('Submit form error:', error);
+                showError('Form submission error: ' + error.message);
+            }
+        }
+
+        // Collect form data
+        function collectFormData() {
+            var formData = new FormData();
+            var form = document.getElementById('safetyProjectForm');
+            
+            // Add all form fields
+            var inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(function(input) {
+                if (input.type !== 'file' && input.value.trim() !== '') {
+                    formData.append(input.name, input.value);
+                }
+            });
+
+            // Collect invoice data
+            var invoices = [];
+            var invoiceSections = document.querySelectorAll('.invoice-section');
+            invoiceSections.forEach(function(section, index) {
+                var invoice = {
+                    index: index,
+                    roleService: getValueFromSection(section, 'roleService_'),
+                    department: getValueFromSection(section, 'department_'),
+                    personnelSupplier: getValueFromSection(section, 'personnelSupplier_'),
+                    detailsStartDate: getValueFromSection(section, 'detailsStartDate_'),
+                    detailsEndDate: getValueFromSection(section, 'detailsEndDate_'),
+                    fixedIncomingDayRate: getValueFromSection(section, 'fixedIncomingDayRate_'),
+                    noPaxTerms: getValueFromSection(section, 'noPaxTerms_'),
+                    fixedOutgoingDayRate: getValueFromSection(section, 'fixedOutgoingDayRate_')
+                };
+                invoices.push(invoice);
+            });
+
+            formData.append('invoices', JSON.stringify(invoices));
+            formData.append('totalInvoices', invoices.length.toString());
+
+            // Add file data
+            if (selectedFiles.length > 0) {
+                selectedFiles.forEach(function(file, index) {
+                    formData.append('file' + index, file);
+                    formData.append('filename' + index, file.name);
+                });
+                formData.append('totalFiles', selectedFiles.length.toString());
+                formData.append('hasDocuments', 'Yes');
+            } else {
+                formData.append('totalFiles', '0');
+                formData.append('hasDocuments', 'No');
+            }
+
+            formData.append('timestamp', new Date().toISOString());
+            formData.append('action', 'create_safety_project_folder');
+
+            return formData;
+        }
+
+        // Get value from section by name prefix
+        function getValueFromSection(section, namePrefix) {
+            var input = section.querySelector('[name^="' + namePrefix + '"]');
+            return input ? input.value : '';
+        }
+
+        // Send to webhook
+        function sendToWebhook(formData) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://jamtransform.app.n8n.cloud/webhook/c07ca701-8cb6-4747-9ba4-90735bcbf8fc', true);
+            
+            xhr.timeout = 60000; // 60 second timeout
+            
+            xhr.onload = function() {
+                handleResponse(xhr);
+            };
+            
+            xhr.onerror = function() {
+                showError('Network error occurred. Please check your connection and try again.');
+            };
+            
+            xhr.ontimeout = function() {
+                showError('Request timed out. Please try again.');
+            };
+
+            xhr.send(formData);
+        }
+
+        // Handle response
+        function handleResponse(xhr) {
+            var loadingDiv = document.getElementById('loadingDiv');
+            var resultDiv = document.getElementById('resultDiv');
+            var resultTitle = document.getElementById('resultTitle');
+            var resultMessage = document.getElementById('resultMessage');
+            var resultDetails = document.getElementById('resultDetails');
+
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            if (resultDiv) resultDiv.style.display = 'block';
+
+            if (xhr.status === 200) {
+                try {
+                    var result = JSON.parse(xhr.responseText);
+                    
+                    if (result.success) {
+                        showSuccess(result);
+                    } else {
+                        showError(result.message || 'Unknown error occurred', result);
+                    }
+                } catch (e) {
+                    showError('Invalid response from server', xhr.responseText);
+                }
+            } else {
+                showError('Server error (Status: ' + xhr.status + ')', xhr.responseText);
+            }
+        }
+
+        // Show success
+        function showSuccess(result) {
+            var resultDiv = document.getElementById('resultDiv');
+            var resultTitle = document.getElementById('resultTitle');
+            var resultMessage = document.getElementById('resultMessage');
+            var resultDetails = document.getElementById('resultDetails');
+
+            if (resultDiv) resultDiv.className = 'result success';
+            if (resultTitle) resultTitle.textContent = '✅ Success!';
+            if (resultMessage) resultMessage.textContent = result.message;
+            
+            var details = 'Project ID: ' + (result.projectId || 'N/A') + '\n' +
+                        'Client: ' + (result.clientName || 'N/A') + '\n' +
+                        'Project: ' + (result.projectName || 'N/A') + '\n' +
+                        'Location: ' + (result.location || 'N/A') + '\n' +
+                        'Month: ' + (result.projectMonth || 'N/A') + '\n' +
+                        'Manager: ' + (result.accountManager || 'N/A') + '\n' +
+                        'Currency: ' + (result.projectCurrency || 'N/A') + '\n' +
+                        'Folder: ' + (result.folderName || 'N/A') + '\n' +
+                        'Invoice Items: ' + (document.querySelectorAll('.invoice-section').length || 0) + '\n' +
+                        'Files Uploaded: ' + (selectedFiles.length > 0 ? selectedFiles.length + ' file(s)' : 'None');
+            
+            if (resultDetails) resultDetails.textContent = details;
+        }
+
+        // Show error
+        function showError(message, details) {
+            var resultDiv = document.getElementById('resultDiv');
+            var resultTitle = document.getElementById('resultTitle');
+            var resultMessage = document.getElementById('resultMessage');
+            var resultDetails = document.getElementById('resultDetails');
+            var loadingDiv = document.getElementById('loadingDiv');
+            var form = document.getElementById('safetyProjectForm');
+
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            if (resultDiv) {
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+            }
+            if (resultTitle) resultTitle.textContent = '❌ Error';
+            if (resultMessage) resultMessage.textContent = message;
+            if (resultDetails && details) {
+                resultDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
+            }
+            
+            // Also show form again so user can retry
+            setTimeout(function() {
+                if (form) form.style.display = 'block';
+            }, 3000);
+        }
+
+        // Reset form function
+        function resetForm() {
+            try {
+                var form = document.getElementById('safetyProjectForm');
+                var loadingDiv = document.getElementById('loadingDiv');
+                var resultDiv = document.getElementById('resultDiv');
+                var fileList = document.getElementById('fileList');
+                var invoiceContainer = document.getElementById('invoiceContainer');
+                var addInvoiceBtn = document.getElementById('addInvoiceBtn');
+                var invoiceMainSection = document.getElementById('invoiceMainSection');
+                var addMoreBtn = document.getElementById('addMoreBtn');
+                var jamAccountManagerGroup = document.getElementById('jamAccountManagerGroup');
+                var dateRangesSection = document.getElementById('dateRangesSection');
+                
+                // Reset form
+                if (form) {
+                    form.reset();
+                    form.style.display = 'block';
+                }
+                
+                // Reset currency to AED default
+                var projectCurrency = document.getElementById('projectCurrency');
+                if (projectCurrency) {
+                    projectCurrency.value = 'AED';
+                }
+                
+                // Hide loading and result
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                if (resultDiv) resultDiv.style.display = 'none';
+                if (fileList) fileList.innerHTML = '';
+                
+                // Reset conditional sections
+                if (jamAccountManagerGroup) jamAccountManagerGroup.classList.add('hidden');
+                if (dateRangesSection) dateRangesSection.classList.add('hidden');
+                if (addInvoiceBtn) addInvoiceBtn.classList.remove('hidden');
+                if (invoiceMainSection) invoiceMainSection.classList.add('hidden');
+                if (addMoreBtn) addMoreBtn.classList.add('hidden');
+                
+                // Reset to only one invoice item
+                if (invoiceContainer) {
+                    var allInvoices = invoiceContainer.querySelectorAll('.invoice-section');
+                    for (var i = 1; i < allInvoices.length; i++) {
+                        invoiceContainer.removeChild(allInvoices[i]);
+                    }
+                    updateInvoiceNumbers();
+                }
+                
+                // Reset variables
+                selectedFiles = [];
+                invoiceCounter = 1;
+                
+                // Set current month again
+                setCurrentMonth();
+                
+            } catch (error) {
+                console.error('Reset form error:', error);
+            }
+        }
+
+        // Initialize when DOM is ready - SharePoint compatible
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeForm);
+        } else {
+            // DOM already loaded
+            initializeForm();
+        }
+
+        // Additional SharePoint compatibility - handle SP environment
+        if (typeof _spPageContextInfo !== 'undefined') {
+            console.log('SharePoint environment detected');
+        }
+        
+    </script>
+</body>
+</html>
